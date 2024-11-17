@@ -1,17 +1,13 @@
-import { Elysia } from "elysia";
+import { Elysia, Context } from "elysia";
 
 const app = new Elysia();
 
 // routes
 import authRoute from "./routes/auth.route";
-import { authGuard } from "./guards/auth.guard";
+import instituteRoute from "./routes/institute.route";
 
 app.group("/api", (app) => {
-  return app
-    .use(authRoute)
-    .guard(authGuard)
-    .get("/health", () => "OK")
-    .get("/services", () => "OK");
+  return app.use(authRoute).use(instituteRoute);
 });
 
 app.listen(3000);
