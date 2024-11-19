@@ -5,9 +5,10 @@ const app = new Elysia();
 // routes
 import authRoute from "./routes/auth.route";
 import instituteRoute from "./routes/institute.route";
+import documentRoute from "./routes/document.route";
 
 app.group("/api", (app) => {
-  return app.use(authRoute).use(instituteRoute);
+  return app.use(authRoute).use(instituteRoute).use(documentRoute);
 });
 
 app.listen(3000);
