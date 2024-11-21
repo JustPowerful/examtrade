@@ -17,9 +17,7 @@ export const authPlugin = (app: Elysia) =>
     .derive(async ({ jwt, cookie: { auth }, set }) => {
       if (!auth.value) {
         set.status = 401; // Unauthorized
-        return {
-          message: "Unauthorized",
-        };
+        throw new Error("Unauthorized");
       }
 
       const token = auth.value.split(" ")[1];
@@ -27,9 +25,7 @@ export const authPlugin = (app: Elysia) =>
 
       if (!valid) {
         set.status = 401; // Unauthorized
-        return {
-          message: "Unauthorized",
-        };
+        throw new Error("Unauthorized");
       }
       const user = (
         await db
@@ -40,9 +36,7 @@ export const authPlugin = (app: Elysia) =>
 
       if (!user) {
         set.status = 401; // Unauthorized
-        return {
-          message: "Unauthorized",
-        };
+        throw new Error("Unauthorized");
       }
 
       return {
