@@ -3,11 +3,13 @@
   "version": "1.0.50",
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@elysiajs/cookie": "^0.8.0",
     "@elysiajs/jwt": "^1.1.1",
+    "@elysiajs/static": "^1.1.1",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.36.3",
     "drizzle-typebox": "^0.1.1",
