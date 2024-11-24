@@ -17,7 +17,11 @@ const authRoute = new Elysia({
 authRoute.post(
   "/register",
   async ({ body, set }) => {
-    const { firstname, lastname, email, password } = body;
+    let { firstname, lastname, email, password, role } = body;
+
+    if (role !== "student" && role !== "professor") {
+      role = "student";
+    }
 
     const exists = await db
       .select()
