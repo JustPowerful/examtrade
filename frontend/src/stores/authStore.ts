@@ -8,6 +8,7 @@ export const useAuth = create<{
     firstname: string;
     lastname: string;
     email: string;
+    role: "professor" | "student" | "admin";
   } | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -31,6 +32,7 @@ export const useAuth = create<{
                 firstname: data.user.firstname,
                 lastname: data.user.lastname,
                 email: data.user.email,
+                role: data.user.role,
               },
             });
           }
@@ -71,6 +73,7 @@ export const useAuth = create<{
                   firstname: data.user.firstname,
                   lastname: data.user.lastname,
                   email: data.user.email,
+                  role: data.user.role,
                 },
               });
             }

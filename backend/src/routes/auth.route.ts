@@ -110,6 +110,7 @@ authRoute.post(
         email: user.email,
         firstname: user.firstname,
         lastname: user.lastname,
+        role: user.role,
       },
     };
   },
@@ -129,7 +130,7 @@ authRoute.post("/logout", async ({ cookie: { auth } }) => {
 });
 
 authRoute.use(authPlugin).post("/validate", async ({ user }) => {
-  const { id, firstname, lastname, email } = user;
+  const { id, firstname, lastname, email, role } = user;
   return {
     message: "Successfully validated the user.",
     user: {
@@ -137,6 +138,7 @@ authRoute.use(authPlugin).post("/validate", async ({ user }) => {
       firstname,
       lastname,
       email,
+      role,
     },
   };
 });
