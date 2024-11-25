@@ -4,6 +4,7 @@ import { userInsertSchema, usersTable } from "../db/schema";
 import { db } from "../db";
 import { eq } from "drizzle-orm";
 import jwt from "@elysiajs/jwt";
+import { authPlugin } from "../plugins/auth.plugin";
 
 const authRoute = new Elysia({
   prefix: "/auth",
@@ -37,14 +38,24 @@ authRoute.post(
 
     try {
       const hashedPassword = await Bun.password.hash(password);
-      await db.insert(usersTable).values({
-        firstname,
-        lastname,
-        email,
-        password: hashedPassword,
-      });
+      const user = await db
+        .insert(usersTable)
+        .values({
+          firstname,
+          lastname,
+          email,
+          password: hashedPassword,
+        })
+        .returning();
+
       return {
         message: "User registered successfully",
+        user: {
+          id: user[0].id,
+          firstname: user[0].firstname,
+          lastname: user[0].lastname,
+          email: user[0].email,
+        },
       };
     } catch (error) {
       set.status = 500;
@@ -94,6 +105,12 @@ authRoute.post(
 
     return {
       message: "Login successful",
+      user: {
+        id: user.id,
+        email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+      },
     };
   },
   {
@@ -109,6 +126,19 @@ authRoute.post(
 
 authRoute.post("/logout", async ({ cookie: { auth } }) => {
   auth.remove();
+});
+
+authRoute.use(authPlugin).post("/validate", async ({ user }) => {
+  const { id, firstname, lastname, email } = user;
+  return {
+    message: "Successfully validated the user.",
+    user: {
+      id,
+      firstname,
+      lastname,
+      email,
+    },
+  };
 });
 
 export default authRoute;
