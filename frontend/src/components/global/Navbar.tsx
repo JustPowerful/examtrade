@@ -1,4 +1,4 @@
-import { Eye, Loader2 } from "lucide-react";
+import { Eye, Loader2, User } from "lucide-react";
 import examtradeLogo from "../../assets/logo.png";
 import { Button } from "../ui/button";
 import {
@@ -16,6 +16,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useQuery } from "react-query";
 import toast from "react-hot-toast";
 
+import { useAuth } from "@/stores/authStore";
+import { stat } from "fs";
+
 const LoginModal = () => {
   const [passVisible, setPassVisible] = useState(false);
   const initialFormState = {
@@ -24,34 +27,51 @@ const LoginModal = () => {
   };
   const [form, setForm] = useState(initialFormState);
   const navigate = useNavigate();
-  async function handleLogin(event: React.MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
+  // async function handleLogin(event: React.MouseEvent<HTMLButtonElement>) {
+  //   event.preventDefault();
+  //   try {
+  //     const response = await fetch(`/api/auth/login`, {
+  //       method: "POST",
+  //       body: JSON.stringify({
+  //         email: form.email,
+  //         password: form.password,
+  //       }),
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+  //     const data = await response.json();
+  //     if (data) {
+  //       toast(data.message);
+  //       if (response.ok) {
+  //         setForm(initialFormState);
+  //         // set zustand state later
+  //         navigate("/dashboard");
+  //       }
+  //     }
+  //   } catch (error) {
+  //     toast("An error occurred", {
+  //       icon: "❌",
+  //     });
+  //   }
+  // }
+  const login = useAuth((state) => state.login);
+  async function handleLogin() {
     try {
-      const response = await fetch(`/api/auth/login`, {
-        method: "POST",
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await response.json();
-      if (data) {
-        toast(data.message);
-        if (response.ok) {
-          setForm(initialFormState);
-          // set zustand state later
-          navigate("/dashboard");
-        }
-      }
+      await login(form.email, form.password);
+      navigate("/dashboard");
     } catch (error) {
       toast("An error occurred", {
         icon: "❌",
       });
     }
   }
+  const { refetch, isFetching } = useQuery("login", handleLogin, {
+    enabled: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
 
   return (
     <Dialog>
@@ -101,7 +121,18 @@ const LoginModal = () => {
                 <Eye className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-            <Button onClick={handleLogin}>Login</Button>
+            <Button
+              onClick={(event) => {
+                event.preventDefault();
+                refetch();
+              }}
+            >
+              {isFetching ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                "Login"
+              )}
+            </Button>
           </div>
         </form>
       </DialogContent>
@@ -254,16 +285,47 @@ const RegisterModal = () => {
 };
 
 const Navbar = () => {
+  const user = useAuth((state) => state.user);
+  const logout = useAuth((state) => state.logout);
+  const loading = useAuth((state) => state.loading);
   return (
     <div className="box-border absolute top-0 left-0 w-full p-6 z-40">
       <div className="flex items-center justify-between bg-zinc-200 bg-opacity-25 backdrop-blur-lg py-2 px-6 rounded-md">
         <div>
           <img className="w-44" src={examtradeLogo} alt="logo of examtrade" />
         </div>
-        <div className="flex gap-3">
-          <LoginModal />
-          <RegisterModal />
-        </div>
+        {loading ? (
+          <div>
+            <Loader2 className="w-6 h-6 animate-spin" />
+          </div>
+        ) : (
+          <div className="flex gap-3">
+            {user ? (
+              <div className="relative">
+                <button className="p-3  rounded-full bg-slate-500 text-white flex items-center justify-center">
+                  <User className="w-4 h-4" />
+                </button>
+
+                <div className="absolute top-full mt-2 right-0 w-[200px] bg-white p-4 rounded-md shadow-md">
+                  <p className="text-sm font-semibold"></p>
+                  <Button
+                    onClick={() => {
+                      logout();
+                    }}
+                    className="mt-2 w-full"
+                  >
+                    Logout
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <LoginModal />
+                <RegisterModal />
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
