@@ -21,6 +21,8 @@ export const institutesTable = pgTable("institutes", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name").notNull(),
   city: varchar("city").notNull(),
+  website: varchar("website"),
+  gouvernorate: varchar("gouvernorate").notNull(),
 });
 
 export const documentsTable = pgTable("documents", {
