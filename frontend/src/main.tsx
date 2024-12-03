@@ -6,12 +6,16 @@ import Home from "./Home";
 import { Toaster } from "react-hot-toast";
 import QueryProvider from "./components/providers/QueryProvider";
 import Layout from "./components/global/Layout";
+import Dashboard from "./pages/Dashboard";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
-    children: [{ path: "/", element: <Home /> }],
+    children: [
+      { path: "/", element: <Home /> },
+      { path: "/dashboard", element: <Dashboard /> },
+    ],
   },
 ]);
 

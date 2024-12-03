@@ -1,4 +1,4 @@
-import { Eye, Loader2, User } from "lucide-react";
+import { Eye, LayoutDashboard, Loader2, LogOut, User } from "lucide-react";
 import examtradeLogo from "../../assets/logo.png";
 import { Button } from "../ui/button";
 import {
@@ -8,8 +8,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
 import { Input } from "../ui/input";
 import { Label } from "@radix-ui/react-label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -285,9 +285,28 @@ const RegisterModal = () => {
 };
 
 const Navbar = () => {
+  const [toggleMenu, setToggleMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const user = useAuth((state) => state.user);
   const logout = useAuth((state) => state.logout);
   const loading = useAuth((state) => state.loading);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        !(event.target as HTMLElement).closest("button")
+      ) {
+        setToggleMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="box-border absolute top-0 left-0 w-full p-6 z-40">
       <div className="flex items-center justify-between bg-zinc-200 bg-opacity-25 backdrop-blur-lg py-2 px-6 rounded-md">
@@ -302,21 +321,37 @@ const Navbar = () => {
           <div className="flex gap-3">
             {user ? (
               <div className="relative">
-                <button className="p-3  rounded-full bg-slate-500 text-white flex items-center justify-center">
+                <button
+                  onClick={() => {
+                    setToggleMenu((prev) => !prev);
+                  }}
+                  className="p-3  rounded-full bg-slate-500 text-white flex items-center justify-center"
+                >
                   <User className="w-4 h-4" />
                 </button>
 
-                <div className="absolute top-full mt-2 right-0 w-[200px] bg-white p-4 rounded-md shadow-md">
-                  <p className="text-sm font-semibold"></p>
-                  <Button
-                    onClick={() => {
-                      logout();
-                    }}
-                    className="mt-2 w-full"
+                {toggleMenu && (
+                  <div
+                    ref={menuRef}
+                    className="absolute top-full mt-2 right-0 w-[200px] bg-white p-4 rounded-md shadow-md"
                   >
-                    Logout
-                  </Button>
-                </div>
+                    <Link
+                      to="/dashboard"
+                      className="text-zinc-800 flex items-center gap-1 justify-center p-2 rounded-md border-2 w-full hover:bg-zinc-200"
+                    >
+                      <LayoutDashboard className="w-4 h-4" /> Dashboard
+                    </Link>
+                    <hr className="mt-2" />
+                    <Button
+                      onClick={() => {
+                        logout();
+                      }}
+                      className="mt-2 w-full flex items-center gap-1"
+                    >
+                      <LogOut className="w-4 h-4" /> Logout
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               <>
