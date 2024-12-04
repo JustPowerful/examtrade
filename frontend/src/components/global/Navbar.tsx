@@ -1,4 +1,11 @@
-import { Eye, LayoutDashboard, Loader2, LogOut, User } from "lucide-react";
+import {
+  Eye,
+  LayoutDashboard,
+  Loader2,
+  LogOut,
+  Search,
+  User,
+} from "lucide-react";
 import examtradeLogo from "../../assets/logo.png";
 import { Button } from "../ui/button";
 import {
@@ -335,12 +342,20 @@ const Navbar = () => {
                     ref={menuRef}
                     className="absolute top-full mt-2 right-0 w-[200px] bg-white p-4 rounded-md shadow-md"
                   >
-                    <Link
-                      to="/dashboard"
-                      className="text-zinc-800 flex items-center gap-1 justify-center p-2 rounded-md border-2 w-full hover:bg-zinc-200"
-                    >
-                      <LayoutDashboard className="w-4 h-4" /> Dashboard
-                    </Link>
+                    <div className="flex flex-col gap-2">
+                      <Link
+                        to="/browse"
+                        className="text-zinc-800 flex items-center gap-1 justify-center p-2 rounded-md border-2 w-full hover:bg-zinc-200"
+                      >
+                        <Search className="w-4 h-4" /> Browse Exams
+                      </Link>
+                      <Link
+                        to="/dashboard"
+                        className="text-zinc-800 flex items-center gap-1 justify-center p-2 rounded-md border-2 w-full hover:bg-zinc-200"
+                      >
+                        <LayoutDashboard className="w-4 h-4" /> Dashboard
+                      </Link>
+                    </div>
                     <hr className="mt-2" />
                     <Button
                       onClick={() => {
