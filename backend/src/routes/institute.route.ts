@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { instituteInsertSchema, institutesTable } from "../db/schema";
 import { authPlugin } from "../plugins/auth.plugin";
 import { db } from "../db";
-import { eq, ilike } from "drizzle-orm";
+import { eq, ilike, or } from "drizzle-orm";
 
 const router = new Elysia({
   prefix: "/institute",
@@ -14,11 +14,31 @@ router.get(
   async ({ query, set }) => {
     try {
       const { page, limit, search } = query;
+      if (limit === -1) {
+        const institutes = await db
+          .select()
+          .from(institutesTable)
+          .where(
+            or(
+              ilike(institutesTable.name, `%${search}%`),
+              ilike(institutesTable.website, `%${search}%`)
+            )
+          );
+        return {
+          message: "Successfully fetched institutes",
+          institutes: institutes,
+        };
+      }
 
       const institutes = await db
         .select()
         .from(institutesTable)
-        .where(ilike(institutesTable.name, `%${search}%`))
+        .where(
+          or(
+            ilike(institutesTable.name, `%${search}%`),
+            ilike(institutesTable.website, `%${search}%`)
+          )
+        )
         .limit(limit)
         .offset((page - 1) * limit);
 
@@ -49,7 +69,7 @@ router
     "/create",
     async ({ body, user, set }) => {
       try {
-        const { name, city } = body;
+        const { name, city, gouvernorate } = body;
         if (user?.role !== "admin") {
           set.status = 401; // Unauthorized
           return {
@@ -58,51 +78,7 @@ router
         }
 
         await db.insert(institutesTable).values({
-          name,
-          city,
-        });
-
-        const institute = (
-          await db
-            .select()
-            .from(institutesTable)
-            .where(eq(institutesTable.name, name))
-        )[0];
-
-        if (!institute) {
-          return {
-            message: "Institute not found",
-          };
-        }
-
-        return {
-          message: "Institute created",
-          institute,
-        };
-      } catch (error) {
-        set.status = 500;
-        return {
-          message: "Internal server error",
-        };
-      }
-    },
-    {
-      body: instituteInsertSchema,
-    }
-  )
-  .post(
-    "/create",
-    async ({ body, user, set }) => {
-      try {
-        const { name, city } = body;
-        if (user?.role !== "admin") {
-          set.status = 401; // Unauthorized
-          return {
-            message: "Unauthorized",
-          };
-        }
-
-        await db.insert(institutesTable).values({
+          gouvernorate,
           name,
           city,
         });
