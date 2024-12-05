@@ -2,9 +2,9 @@ import Elysia, { t } from "elysia";
 import { authPlugin } from "../plugins/auth.plugin";
 import path from "path";
 import { db } from "../db";
-import { documentsTable } from "../db/schema";
+import { documentsTable, institutesTable } from "../db/schema";
 import { DatabaseError } from "pg";
-import { eq, ilike, or } from "drizzle-orm";
+import { and, eq, ilike, or } from "drizzle-orm";
 import { unlink } from "node:fs/promises";
 
 const router = new Elysia({
@@ -15,16 +15,40 @@ const router = new Elysia({
 router
   .get(
     "/paginate",
-    ({ query, set }) => {
+    async ({ query, set }) => {
       try {
-        const { page, limit, search } = query;
-        const documents = db
+        const { page, limit, search, institute } = query;
+
+        const instituteObj = (
+          await db
+            .select({
+              id: institutesTable.id,
+              name: institutesTable.name,
+            })
+            .from(institutesTable)
+            .where(ilike(institutesTable.name, `%${institute}%`))
+        )[0];
+
+        if (!instituteObj) {
+          set.status = 404;
+          return {
+            message: "Institute not found",
+          };
+        }
+        const instituteId = instituteObj.id;
+
+        const documents = await db
           .select()
           .from(documentsTable)
           .where(
-            or(
-              ilike(documentsTable.title, `%${search}%`),
-              ilike(documentsTable.description, `%${search}%`)
+            and(
+              institute && institute.length > 0
+                ? eq(documentsTable.instituteId, instituteId)
+                : undefined,
+              or(
+                ilike(documentsTable.title, `%${search}%`),
+                ilike(documentsTable.description, `%${search}%`)
+              )
             )
           )
           .limit(limit)
@@ -52,6 +76,7 @@ router
         search: t.String({
           default: "",
         }),
+        institute: t.Optional(t.String()),
       }),
     }
   )
