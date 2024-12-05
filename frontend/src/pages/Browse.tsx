@@ -1,9 +1,12 @@
 import { useAuth } from "@/stores/authStore";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
+import { DownloadCloud, PaperclipIcon, Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 const Browse = () => {
   const user = useAuth((state) => state.user);
@@ -34,6 +37,31 @@ const Browse = () => {
       throw error;
     }
   }
+
+  async function paginateDocuments() {
+    try {
+      const response = await fetch(
+        `/api/document/paginate?limit=16&search=${form.search}&institute=${form.institute}&page=1`
+      );
+      const data = await response.json();
+      if (response.ok) {
+        return data.documents;
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  const {
+    refetch: documentRefetch,
+    data: documents,
+    isLoading: isDocumentLoading,
+  } = useQuery("getdocuments", paginateDocuments, {
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
   const {
     refetch: searchRefetch,
@@ -84,7 +112,40 @@ const Browse = () => {
             setForm((prev) => ({ ...prev, search: e.target.value }));
           }}
         />
-        <Button>Search</Button>
+        <Button
+          onClick={() => {
+            documentRefetch();
+          }}
+          className="flex items-center gap-1"
+        >
+          {" "}
+          <Search className="w-4 h-4" /> Search
+        </Button>
+
+        <div className="grid grid-cols-4">
+          {documents &&
+            documents.map((document: any) => (
+              <div
+                key={document.id}
+                className="flex flex-col items-center gap-2 justify-center border border-gray-300 p-4 rounded-md"
+              >
+                <PaperclipIcon className="w-8 h-8" />
+                <h2 className="text-md  font-semibold">{document.title}</h2>
+                <p className="text-zinc-600 text-sm">{document.description}</p>
+                <Link
+                  to={document.src}
+                  className={cn(
+                    buttonVariants({
+                      variant: "default",
+                      className: "w-full flex items-center gap-1",
+                    })
+                  )}
+                >
+                  <DownloadCloud className="w-4 h-4" /> Download
+                </Link>
+              </div>
+            ))}
+        </div>
       </div>
     </div>
   );
