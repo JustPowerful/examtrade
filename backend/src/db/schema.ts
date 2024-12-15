@@ -33,6 +33,7 @@ export const documentsTable = pgTable("documents", {
   description: varchar("description"),
   src: varchar("src").notNull(),
   parentId: uuid("parentId"), // parent document id
+  thumbnailSrc: varchar("thumbnailSrc").notNull(),
 });
 
 export const documentsRelations = relations(documentsTable, ({ one }) => ({
