@@ -8,7 +8,21 @@ import authRoute from "./routes/auth.route";
 import instituteRoute from "./routes/institute.route";
 import documentRoute from "./routes/document.route";
 
-app.use(staticPlugin());
+// used for serving uploaded files
+app.use(
+  staticPlugin({
+    prefix: "/uploads",
+    assets: "./uploads",
+  })
+);
+
+// used for serving static files
+app.use(
+  staticPlugin({
+    prefix: "/public",
+    assets: "./public",
+  })
+);
 
 app.get("/health", () => {
   return {
