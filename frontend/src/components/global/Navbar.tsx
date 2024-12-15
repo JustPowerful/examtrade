@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Link, useNavigate } from "react-router-dom";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "../ui/input";
 import { Label } from "@radix-ui/react-label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -24,7 +24,6 @@ import { useQuery } from "react-query";
 import toast from "react-hot-toast";
 
 import { useAuth } from "@/stores/authStore";
-import { stat } from "fs";
 
 const LoginModal = () => {
   const [passVisible, setPassVisible] = useState(false);
