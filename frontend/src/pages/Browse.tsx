@@ -1,18 +1,17 @@
 import { useAuth } from "@/stores/authStore";
 import { Input } from "@/components/ui/input";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
-import { DownloadCloud, PaperclipIcon, Search } from "lucide-react";
-import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { DownloadCloud, Search } from "lucide-react";
 
 const Browse = () => {
   const user = useAuth((state) => state.user);
   const [form, setForm] = useState({
     institute: "",
     search: "",
+    page: 1,
   });
 
   async function paginateInstitutes() {
@@ -45,7 +44,7 @@ const Browse = () => {
       );
       const data = await response.json();
       if (response.ok) {
-        return data.documents;
+        return data;
       } else {
         throw new Error(data.message);
       }
@@ -122,29 +121,41 @@ const Browse = () => {
           <Search className="w-4 h-4" /> Search
         </Button>
 
-        <div className="grid grid-cols-4">
+        <div className="">
           {documents &&
-            documents.map((document: any) => (
+            documents.documents.map((document: any) => (
               <div
                 key={document.id}
-                className="flex flex-col items-center gap-2 justify-center border border-gray-300 p-4 rounded-md"
+                className="grid grid-cols-4 p-2 border-b items-center"
               >
-                <PaperclipIcon className="w-8 h-8" />
-                <h2 className="text-md  font-semibold">{document.title}</h2>
-                <p className="text-zinc-600 text-sm">{document.description}</p>
-                <Link
-                  to={document.src}
-                  className={cn(
-                    buttonVariants({
-                      variant: "default",
-                      className: "w-full flex items-center gap-1",
-                    })
-                  )}
+                {/* <PaperclipIcon className="w-8 h-8" /> */}
+                <h2 className="text-md font-semibold">
+                  {document.documents.title}
+                </h2>
+                <p className="text-zinc-600 text-sm">
+                  {document.documents.description}
+                </p>
+                <p className="text-zinc-600">
+                  {document.institutes
+                    ? document.institutes.name
+                    : "Unknown Institute"}
+                </p>
+                <a
+                  href={document.documents.src}
+                  className="flex items-center gap-1 hover:text-blue-600"
                 >
                   <DownloadCloud className="w-4 h-4" /> Download
-                </Link>
+                </a>
               </div>
             ))}
+        </div>
+
+        <div className="w-full flex justify-center">
+          <div className="w-60 grid grid-cols-3 gap-1">
+            <Button>{"<"}</Button>
+            <Input type="number" value={form.page} />
+            <Button>{">"}</Button>
+          </div>
         </div>
       </div>
     </div>
