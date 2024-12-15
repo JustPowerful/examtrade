@@ -4,7 +4,7 @@ import path from "path";
 import { db } from "../db";
 import { documentsTable, institutesTable } from "../db/schema";
 import { DatabaseError } from "pg";
-import { and, eq, ilike, or } from "drizzle-orm";
+import { and, count, eq, ilike, or } from "drizzle-orm";
 import { unlink } from "node:fs/promises";
 
 const router = new Elysia({
@@ -51,12 +51,37 @@ router
               )
             )
           )
-          .limit(limit)
-          .offset((page - 1) * limit);
 
+          .limit(limit)
+          .offset((page - 1) * limit)
+          .leftJoin(
+            institutesTable,
+            eq(documentsTable.instituteId, institutesTable.id)
+          );
+
+        const totalDocuments = (
+          await db
+            .select({
+              count: count(),
+            })
+            .from(documentsTable)
+            .where(
+              and(
+                institute && institute.length > 0
+                  ? eq(documentsTable.instituteId, instituteId)
+                  : undefined,
+                or(
+                  ilike(documentsTable.title, `%${search}%`),
+                  ilike(documentsTable.description, `%${search}%`)
+                )
+              )
+            )
+        )[0].count;
+        const totalPages = Math.ceil(totalDocuments / limit);
         return {
           message: "Successfully fetched documents",
           documents,
+          totalPages,
         };
       } catch (error) {
         set.status = 500;
@@ -143,22 +168,29 @@ router
               "Invalid file type, please upload a PDF, DOC, DOCX, PPT or PPTX file",
           };
         }
-        const baseDir = path.join(__dirname, "..", "..", "public", "documents");
+        const baseDir = path.join(
+          __dirname,
+          "..",
+          "..",
+          "uploads",
+          "documents"
+        );
         const fileName = Date.now() + "-" + user?.id + file.name;
         await Bun.write(path.join(baseDir, fileName), file);
 
         await db.insert(documentsTable).values({
           title,
           description,
-          src: `/public/documents/${fileName}`,
+          src: `/uploads/documents/${fileName}`,
           instituteId,
           userId: user?.id!,
           parentId: parentId,
+          thumbnailSrc: `/uploads/documents/thumb-${fileName}.png`,
         });
 
         return {
           message: "File uploaded successfully",
-          src: `/public/documents/${fileName}`,
+          src: `/uploads/documents/${fileName}`,
         };
       } catch (error) {
         if (error instanceof DatabaseError) {
@@ -169,6 +201,7 @@ router
             };
           }
         }
+        throw error;
       }
     },
     {
